@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Órdenes · Café Entre Sierras</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#23242D">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F1E6D3; --panel: #FBF6EC; --ink: #262833; --gold: #8E6E2C; --gold-ink: #FFFFFF;
+    --soft: #6A655B; --line: #DCCBAA; --ok: #2E6B47; --ok-bg: #DCEBDD; --warn: #9A3B23; --warn-bg: #F4DCD3;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #23242D; --panel: #2D2F3A; --ink: #EFE8D8; --gold: #D2B06A; --gold-ink: #23242D;
+      --soft: #ABA697; --line: #44464F; --ok: #8FD0A6; --ok-bg: #26392E; --warn: #F0A58C; --warn-bg: #43302B;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #23242D; --panel: #2D2F3A; --ink: #EFE8D8; --gold: #D2B06A; --gold-ink: #23242D;
+    --soft: #ABA697; --line: #44464F; --ok: #8FD0A6; --ok-bg: #26392E; --warn: #F0A58C; --warn-bg: #43302B;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: "Montserrat", "Segoe UI", Arial, sans-serif; font-size: 1rem; line-height: 1.4; }
+  button { font: inherit; cursor: pointer; color: inherit; }
+  input { font: inherit; color: var(--ink); }
+  main { max-width: 34rem; margin: 0 auto; padding: 1rem 1rem 7rem; }
+
+  .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding: 0.8rem 1rem 0.6rem; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  .top-in { max-width: 34rem; margin: 0 auto; }
+  h1 { font-family: "Abril Fatface", Georgia, serif; font-weight: 400; color: var(--gold); font-size: 1.5rem; margin: 0 0 0.6rem; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; background: var(--panel); padding: 0.3rem; border-radius: 12px; }
+  .tabs button { border: 0; background: transparent; padding: 0.6rem; border-radius: 9px; font-weight: 600; }
+  .tabs button[aria-pressed="true"] { background: var(--gold); color: var(--gold-ink); }
+
+  .card { background: var(--panel); border-radius: 14px; padding: 1rem; margin-top: 1rem; }
+  label.field { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; }
+  input.text { width: 100%; padding: 0.75rem; border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); }
+  input.text:focus { outline: none; border-color: var(--gold); }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.8rem; }
+  .seg button { border: 1.5px solid var(--line); background: transparent; padding: 0.5rem; border-radius: 9px; font-weight: 600; }
+  .seg button[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .prod { border: 1.5px solid var(--line); background: var(--bg); border-radius: 10px; padding: 0.7rem 0.6rem; text-align: left; display: flex; justify-content: space-between; gap: 0.4rem; }
+  .prod:active { border-color: var(--gold); }
+  .prod b { color: var(--gold); font-variant-numeric: tabular-nums; }
+
+  .milk { margin-top: 0.8rem; border: 1.5px solid var(--gold); border-radius: 12px; padding: 0.8rem; }
+  .milk p { margin: 0 0 0.6rem; font-weight: 600; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .btn { border: 0; border-radius: 10px; padding: 0.8rem; font-weight: 600; background: var(--gold); color: var(--gold-ink); }
+  .btn.ghost { background: transparent; border: 1.5px solid var(--gold); color: var(--gold); }
+  .btn.plain { background: transparent; border: 1.5px solid var(--line); color: var(--soft); }
+  .btn.full { width: 100%; }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+
+  ul.items { list-style: none; margin: 0; padding: 0; }
+  ul.items li { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0; }
+  ul.items li + li { border-top: 1px solid var(--line); }
+  .iname { flex: 1; }
+  .tag { display: inline-block; font-size: 0.75rem; color: var(--soft); }
+  .qty { display: flex; align-items: center; gap: 0.35rem; }
+  .qty button { width: 2rem; height: 2rem; border-radius: 50%; border: 1.5px solid var(--line); background: transparent; font-weight: 700; }
+  .qty span { min-width: 1.2rem; text-align: center; font-weight: 600; }
+  .sub { min-width: 3.2rem; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .total { display: flex; justify-content: space-between; align-items: baseline; margin-top: 0.8rem; padding-top: 0.8rem; border-top: 2px solid var(--gold); font-weight: 700; font-size: 1.2rem; }
+  .total b { color: var(--gold); font-variant-numeric: tabular-nums; }
+  .empty { color: var(--soft); text-align: center; padding: 1rem 0; margin: 0; }
+
+  .order-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+  .order-head h3 { margin: 0; font-size: 1.05rem; }
+  .time { font-size: 0.8rem; color: var(--soft); }
+  .badge { font-size: 0.78rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 99px; white-space: nowrap; }
+  .badge.paid { background: var(--ok-bg); color: var(--ok); }
+  .badge.due { background: var(--warn-bg); color: var(--warn); }
+  .summary { margin: 0.6rem 0 0; padding: 0; list-style: none; font-size: 0.95rem; }
+  .summary li { display: flex; justify-content: space-between; padding: 0.15rem 0; }
+  .actions { display: flex; gap: 0.5rem; margin-top: 0.8rem; flex-wrap: wrap; }
+  .actions .btn { flex: 1; padding: 0.65rem; }
+
+  .pay { margin-top: 0.8rem; border-top: 1px dashed var(--line); padding-top: 0.8rem; }
+  .bills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; margin: 0.5rem 0; }
+  .bills button { border: 1.5px solid var(--line); background: var(--bg); border-radius: 9px; padding: 0.5rem 0; font-weight: 600; }
+  .change { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.15rem; font-weight: 700; margin: 0.6rem 0; }
+  .change b { font-size: 1.6rem; color: var(--ok); font-variant-numeric: tabular-nums; }
+  .change.short b { color: var(--warn); font-size: 1.1rem; }
+
+  .bar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom, 0px)); z-index: 5; }
+  .bar-in { max-width: 34rem; margin: 0 auto; display: flex; gap: 0.6rem; align-items: center; }
+  .bar-in .sum { flex: 1; font-weight: 700; }
+  .bar-in .sum small { display: block; font-weight: 500; color: var(--soft); font-size: 0.8rem; }
+
+  .toast { position: fixed; left: 50%; bottom: 6rem; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 0.6rem 1rem; border-radius: 99px; font-weight: 600; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 20; }
+  .toast.show { opacity: 1; }
+  .note { font-size: 0.8rem; color: var(--soft); text-align: center; margin-top: 1.5rem; }
+  .overlay { position: fixed; inset: 0; z-index: 30; background: rgba(20,20,26,.6); display: flex; align-items: center; justify-content: center; padding: 1.2rem; }
+  .tcard { width: 100%; max-width: 24rem; background: #23242D; color: #EFE8D8; border-radius: 18px; padding: 1.6rem 1.4rem; text-align: center; border: 2px solid #D2B06A; }
+  .tcard .brand { font-family: "Abril Fatface", Georgia, serif; color: #D2B06A; font-size: 1.5rem; margin: 0 0 0.2rem; }
+  .tcard .sub2 { margin: 0 0 1.2rem; font-size: 0.85rem; letter-spacing: .08em; color: #ABA697; }
+  .tcard .lbl { font-size: 0.8rem; color: #ABA697; margin: 0.9rem 0 0.15rem; }
+  .tcard .num { font-size: 1.55rem; font-weight: 700; letter-spacing: .05em; margin: 0; font-variant-numeric: tabular-nums; }
+  .tcard .val { font-size: 1.15rem; font-weight: 600; margin: 0; }
+  .tcard .amt { font-size: 1.9rem; font-weight: 700; color: #D2B06A; margin: 0; }
+  .tcard .btn { background: #D2B06A; color: #23242D; }
+  .tcard .btn.plain { background: transparent; color: #ABA697; border-color: #44464F; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="top-in">
+    <h1>Café Entre Sierras</h1>
+    <div class="tabs" role="group" aria-label="Secciones">
+      <button id="tabNew" aria-pressed="true">Nueva orden</button>
+      <button id="tabList" aria-pressed="false">Órdenes (<span id="count">0</span>)</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <!-- NUEVA ORDEN -->
+  <div id="viewNew">
+    <div class="card">
+      <label class="field" for="cliente">Cliente</label>
+      <input class="text" id="cliente" placeholder="Ej. chamarra roja, mesa de la ventana" autocomplete="off">
+    </div>
+
+    <div class="card">
+      <div class="seg" role="group" aria-label="Tipo de bebida">
+        <button id="segHot" aria-pressed="true">Calientes</button>
+        <button id="segCold" aria-pressed="false">Fríos</button>
+      </div>
+      <div class="grid" id="products"></div>
+      <div class="milk" id="milkBox" hidden>
+        <p id="milkTitle">¿Qué leche?</p>
+        <div class="row2">
+          <button class="btn" data-milk="Entera">Entera</button>
+          <button class="btn ghost" data-milk="Deslactosada">Deslactosada</button>
+        </div>
+        <button class="btn plain full" id="milkCancel" style="margin-top:.5rem">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <ul class="items" id="cart"></ul>
+      <p class="empty" id="cartEmpty">Toca una bebida para agregarla.</p>
+      <div class="total"><span>Total</span><b id="cartTotal">$0</b></div>
+    </div>
+  </div>
+
+  <!-- LISTA DE ÓRDENES -->
+  <div id="viewList" hidden>
+    <div id="orders"></div>
+    <p class="empty" id="ordersEmpty" style="margin-top:2rem">No hay órdenes abiertas.</p>
+  </div>
+
+  <p class="note" id="saveNote"></p>
+</main>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <div class="sum"><span id="barTotal">$0</span><small id="barCount">0 bebidas</small></div>
+    <button class="btn" id="saveOrder" disabled>Guardar orden</button>
+  </div>
+</div>
+
+<div class="overlay" id="transfer" hidden>
+  <div class="tcard" role="dialog" aria-label="Datos para transferencia">
+    <p class="brand">Café Entre Sierras</p>
+    <p class="sub2">PAGO POR TRANSFERENCIA</p>
+    <div id="tAmtBox"><p class="lbl">Total a pagar</p><p class="amt" id="tAmt">$0</p></div>
+    <p class="lbl">Número de tarjeta</p>
+    <p class="num">5579 0701 3727 3796</p>
+    <p class="lbl">Banco</p>
+    <p class="val">Santander</p>
+    <p class="lbl">A nombre de</p>
+    <p class="val">Zaira León Sánchez</p>
+    <button class="btn full" id="tCopy" style="margin-top:1.3rem">Copiar número</button>
+    <button class="btn plain full" id="tClose" style="margin-top:.5rem">Cerrar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ----- Menú (precios actuales) -----
+  const MENU = {
+    hot: [
+      { n: "Espresso", p: 40, m: false }, { n: "Americano", p: 50, m: false },
+      { n: "Flat white", p: 50, m: true }, { n: "Cappuccino", p: 60, m: true },
+      { n: "Latte", p: 60, m: true }, { n: "Moka", p: 60, m: true },
+      { n: "Chocolate", p: 60, m: true }, { n: "Chai", p: 65, m: true },
+      { n: "Taro", p: 70, m: true }, { n: "Dirty chai", p: 70, m: true }
+    ],
+    cold: [
+      { n: "Americano", p: 60, m: false }, { n: "Latte", p: 60, m: true },
+      { n: "Caramel latte", p: 65, m: true }, { n: "Dark moka", p: 70, m: true },
+      { n: "Chai", p: 70, m: true }, { n: "Taro", p: 70, m: true },
+      { n: "Matcha", p: 80, m: true },
+      { n: "Agua", p: 25, m: false }, { n: "Agua mineral", p: 35, m: false }
+    ]
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const money = (n) => "$" + Number(n || 0).toLocaleString("es-MX");
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  let tipo = "hot";
+  let pending = null;          // bebida esperando elegir leche
+  let cart = [];               // {key, n, t, milk, p, q}
+  let orders = [];             // órdenes guardadas
+  let openPay = null;          // id de la orden con el cobro abierto
+  let payWith = {};            // id -> monto con el que paga
+  let armedDel = null;         // orden que espera el segundo toque para borrarse
+  let armTimer;
+
+  async function copyText(txt) {
+    try { await navigator.clipboard.writeText(txt); return true; } catch (e) {}
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = txt; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      const ok = document.execCommand("copy"); ta.remove(); return ok;
+    } catch (e) { return false; }
+  }
+
+  // ----- Guardado: base de datos de Claude, o el navegador si no está disponible -----
+  const store = {
+    mode: "local",
+    col: null,
+    chain: {},
+    async init() {
+      try {
+        const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+        const uid = user ? await user.id() : null;
+        if (db && uid) {
+          this.col = db.collection("data/users/" + uid);
+          this.mode = "db";
+          let done = false;
+          const timer = setTimeout(() => { if (!done) $("saveNote").textContent = "Conectando…"; }, 10000);
+          this.col.onSnapshot((snap) => {
+            done = true; clearTimeout(timer);
+            orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            $("saveNote").textContent = "";
+            renderOrders();
+          }, () => { $("saveNote").textContent = "No se pudo conectar; revisa tu internet."; });
+          return;
+        }
+      } catch (e) { /* sin base de datos */ }
+      this.loadLocal();
+    },
+    loadLocal() {
+      this.mode = "local";
+      try { orders = JSON.parse(localStorage.getItem("entreSierrasOrdenes") || "[]"); } catch (e) { orders = []; }
+      renderOrders();
+    },
+    saveLocal() { try { localStorage.setItem("entreSierrasOrdenes", JSON.stringify(orders)); } catch (e) {} },
+    put(order) {
+      if (this.mode === "local") { this.saveLocal(); return; }
+      const { id, ...data } = order;
+      this.chain[id] = (this.chain[id] || Promise.resolve()).then(() => this.col.doc(id).set(data)).catch(() => toast("No se guardó, revisa tu internet"));
+    },
+    remove(id) {
+      if (this.mode === "local") { this.saveLocal(); return; }
+      this.chain[id] = (this.chain[id] || Promise.resolve()).then(() => this.col.doc(id).delete()).catch(() => toast("No se pudo borrar"));
+    }
+  };
+
+  // ----- Nueva orden -----
+  function renderProducts() {
+    $("products").innerHTML = MENU[tipo].map((it, i) =>
+      `<button class="prod" data-i="${i}"><span>${esc(it.n)}</span><b>${money(it.p)}</b></button>`).join("");
+    $("segHot").setAttribute("aria-pressed", tipo === "hot");
+    $("segCold").setAttribute("aria-pressed", tipo === "cold");
+  }
+
+  function addToCart(it, t, milk) {
+    const key = t + "|" + it.n + "|" + (milk || "");
+    const found = cart.find((c) => c.key === key);
+    if (found) found.q++;
+    else cart.push({ key, n: it.n, t, milk: milk || "", p: it.p, q: 1 });
+    renderCart();
+  }
+
+  function renderCart() {
+    const total = cart.reduce((s, c) => s + c.p * c.q, 0);
+    const count = cart.reduce((s, c) => s + c.q, 0);
+    $("cart").innerHTML = cart.map((c, i) => `
+      <li>
+        <div class="iname">${esc(c.n)} <span class="tag">${c.t === "hot" ? "caliente" : "frío"}${c.milk ? " · " + c.milk.toLowerCase() : ""}</span></div>
+        <div class="qty"><button data-dec="${i}" aria-label="Quitar uno">−</button><span>${c.q}</span><button data-inc="${i}" aria-label="Agregar uno">+</button></div>
+        <div class="sub">${money(c.p * c.q)}</div>
+      </li>`).join("");
+    $("cartEmpty").hidden = cart.length > 0;
+    $("cartTotal").textContent = money(total);
+    $("barTotal").textContent = money(total);
+    $("barCount").textContent = count + (count === 1 ? " bebida" : " bebidas");
+    $("saveOrder").disabled = cart.length === 0;
+  }
+
+  $("products").addEventListener("click", (e) => {
+    const b = e.target.closest(".prod"); if (!b) return;
+    const it = MENU[tipo][+b.dataset.i];
+    if (it.m) {
+      pending = { it, t: tipo };
+      $("milkTitle").textContent = `${it.n} ${tipo === "hot" ? "caliente" : "frío"}: ¿qué leche?`;
+      $("milkBox").hidden = false;
+      $("milkBox").scrollIntoView({ block: "nearest", behavior: "smooth" });
+    } else {
+      addToCart(it, tipo, "");
+    }
+  });
+  $("milkBox").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-milk]"); if (!b || !pending) return;
+    addToCart(pending.it, pending.t, b.dataset.milk);
+    pending = null; $("milkBox").hidden = true;
+  });
+  $("milkCancel").addEventListener("click", () => { pending = null; $("milkBox").hidden = true; });
+  $("cart").addEventListener("click", (e) => {
+    const inc = e.target.closest("[data-inc]"), dec = e.target.closest("[data-dec]");
+    if (inc) cart[+inc.dataset.inc].q++;
+    if (dec) { const i = +dec.dataset.dec; cart[i].q--; if (cart[i].q <= 0) cart.splice(i, 1); }
+    renderCart();
+  });
+  $("segHot").onclick = () => { tipo = "hot"; renderProducts(); };
+  $("segCold").onclick = () => { tipo = "cold"; renderProducts(); };
+
+  $("saveOrder").addEventListener("click", () => {
+    if (!cart.length) return;
+    const order = {
+      id: "o" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      cliente: $("cliente").value.trim() || "Sin descripción",
+      items: cart.map(({ n, t, milk, p, q }) => ({ n, t, milk, p, q })),
+      total: cart.reduce((s, c) => s + c.p * c.q, 0),
+      pagado: false,
+      creado: Date.now()
+    };
+    orders.push(order);
+    store.put(order);
+    cart = []; $("cliente").value = ""; renderCart(); renderOrders();
+    toast("Orden guardada");
+  });
+
+  // ----- Lista de órdenes -----
+  function renderOrders() {
+    const list = [...orders].sort((a, b) => (a.pagado - b.pagado) || (a.creado - b.creado));
+    $("count").textContent = orders.length;
+    $("ordersEmpty").hidden = orders.length > 0;
+    $("orders").innerHTML = list.map((o) => {
+      const hora = new Date(o.creado).toLocaleTimeString("es-MX", { hour: "numeric", minute: "2-digit" });
+      const items = (o.items || []).map((i) =>
+        `<li><span>${i.q} × ${esc(i.n)} <span class="tag">${i.t === "hot" ? "caliente" : "frío"}${i.milk ? " · " + i.milk.toLowerCase() : ""}</span></span><span>${money(i.p * i.q)}</span></li>`).join("");
+      const pay = openPay === o.id ? payPanel(o) : "";
+      return `
+      <div class="card" data-id="${o.id}">
+        <div class="order-head">
+          <div><h3>${esc(o.cliente)}</h3><span class="time">${hora}</span></div>
+          <span class="badge ${o.pagado ? "paid" : "due"}">${o.pagado ? "Pagado" : "No ha pagado"}</span>
+        </div>
+        <ul class="summary">${items}</ul>
+        <div class="total"><span>Total</span><b>${money(o.total)}</b></div>
+        ${pay}
+        <div class="actions">
+          ${o.pagado
+            ? `<button class="btn ghost" data-act="unpay">Desmarcar pago</button><button class="btn" data-act="close">Entregada · quitar</button>`
+            : `<button class="btn" data-act="pay">Cobrar</button><button class="btn ${armedDel === o.id ? "" : "plain"}" data-act="del" ${armedDel === o.id ? 'style="background:var(--warn);color:#fff"' : ""}>${armedDel === o.id ? "Toca otra vez para borrar" : "Borrar"}</button>`}
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  function payPanel(o) {
+    const v = payWith[o.id];
+    let res = "";
+    if (v !== undefined && v !== "") {
+      const diff = Number(v) - o.total;
+      res = diff >= 0
+        ? `<div class="change"><span>Cambio</span><b>${money(diff)}</b></div>`
+        : `<div class="change short"><span>Le faltan</span><b>${money(-diff)}</b></div>`;
+    }
+    return `
+      <div class="pay">
+        <label class="field" for="pw-${o.id}">¿Con cuánto paga?</label>
+        <input class="text" id="pw-${o.id}" data-paywith="${o.id}" type="number" inputmode="numeric" min="0" placeholder="Ej. 500" value="${v ?? ""}">
+        <div class="bills">
+          ${[100, 200, 500, 1000].map((b) => `<button data-bill="${b}">$${b}</button>`).join("")}
+        </div>
+        <div data-result="${o.id}">${res}</div>
+        <button class="btn ghost full" data-act="transfer" style="margin-top:.4rem">Paga por transferencia</button>
+        <button class="btn full" data-act="confirm" style="margin-top:.4rem">Ya pagó</button>
+        <button class="btn plain full" data-act="cancelpay" style="margin-top:.4rem">Cancelar</button>
+      </div>`;
+  }
+
+  function updateChange(id) {
+    const o = orders.find((x) => x.id === id); if (!o) return;
+    const box = document.querySelector(`[data-result="${id}"]`); if (!box) return;
+    const v = payWith[id];
+    if (v === undefined || v === "") { box.innerHTML = ""; return; }
+    const diff = Number(v) - o.total;
+    box.innerHTML = diff >= 0
+      ? `<div class="change"><span>Cambio</span><b>${money(diff)}</b></div>`
+      : `<div class="change short"><span>Le faltan</span><b>${money(-diff)}</b></div>`;
+  }
+
+  $("orders").addEventListener("input", (e) => {
+    const id = e.target.dataset.paywith; if (!id) return;
+    payWith[id] = e.target.value; updateChange(id);
+  });
+
+  $("orders").addEventListener("click", (e) => {
+    const card = e.target.closest("[data-id]"); if (!card) return;
+    const id = card.dataset.id;
+    const o = orders.find((x) => x.id === id); if (!o) return;
+    const bill = e.target.closest("[data-bill]");
+    if (bill) {
+      payWith[id] = bill.dataset.bill;
+      const inp = card.querySelector("[data-paywith]"); if (inp) inp.value = bill.dataset.bill;
+      updateChange(id); return;
+    }
+    const act = e.target.closest("[data-act]")?.dataset.act; if (!act) return;
+    if (act === "pay") { openPay = id; renderOrders(); setTimeout(() => document.getElementById("pw-" + id)?.focus(), 50); }
+    if (act === "transfer") { $("tAmt").textContent = money(o.total); $("tAmtBox").hidden = false; $("transfer").hidden = false; return; }
+    if (act === "cancelpay") { openPay = null; delete payWith[id]; renderOrders(); }
+    if (act === "confirm") { o.pagado = true; openPay = null; delete payWith[id]; store.put(o); renderOrders(); toast("Marcada como pagada"); }
+    if (act === "unpay") { o.pagado = false; store.put(o); renderOrders(); }
+    if (act === "del" && armedDel !== id) {
+      armedDel = id; renderOrders();
+      clearTimeout(armTimer); armTimer = setTimeout(() => { armedDel = null; renderOrders(); }, 3000);
+      return;
+    }
+    if (act === "close" || act === "del") {
+      armedDel = null; clearTimeout(armTimer);
+      if (openPay === id) openPay = null;
+      delete payWith[id];
+      orders = orders.filter((x) => x.id !== id); store.remove(id); renderOrders();
+      toast(act === "close" ? "Orden terminada" : "Orden borrada");
+    }
+  });
+
+  // ----- Datos de transferencia -----
+  $("tClose").onclick = () => { $("transfer").hidden = true; };
+  $("transfer").addEventListener("click", (e) => { if (e.target.id === "transfer") $("transfer").hidden = true; });
+  $("tCopy").onclick = async () => {
+    toast((await copyText("5579070137273796")) ? "Número copiado" : "Mantén presionado el número para copiarlo");
+  };
+
+  // ----- Pestañas -----
+  function show(view) {
+    const isNew = view === "new";
+    $("viewNew").hidden = !isNew; $("viewList").hidden = isNew; $("bar").hidden = !isNew;
+    $("tabNew").setAttribute("aria-pressed", isNew); $("tabList").setAttribute("aria-pressed", !isNew);
+    window.scrollTo(0, 0);
+  }
+  $("tabNew").onclick = () => show("new");
+  $("tabList").onclick = () => show("list");
+
+  let tt;
+  function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1600); }
+
+  if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js").catch(() => {}); }
+
+  renderProducts(); renderCart();
+  if (window.claude && claude.use) store.init(); else store.loadLocal();
+</script>
+</body>
+</html>
