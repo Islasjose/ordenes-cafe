@@ -250,6 +250,20 @@
   .del { border: 0; background: transparent; color: var(--warn); font-weight: 700; min-height: 32px; font-size: 0.8rem; padding: 0; }
   .sectitle { font-size: 0.8rem; letter-spacing: .06em; color: var(--soft); font-weight: 800; margin: 1.4rem 0 0.4rem; text-transform: uppercase; }
   .ticket-actions { display: grid; gap: 0.6rem; margin: 1.6rem auto 0; max-width: 22rem; animation: rise .5s ease .9s both; }
+  .daycard { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; gap: 0 0.8rem; width: 100%; margin-top: 1rem; border: 0; border-radius: 20px; padding: 0.9rem 1rem; background: var(--head); color: var(--head-ink); text-align: left; box-shadow: 0 4px 14px rgba(74,44,29,.12); }
+  .daycard b { font-weight: 800; font-size: 0.95rem; }
+  .daycard small { display: block; color: #B9B3A5; font-weight: 600; font-size: 0.8rem; }
+  .daycard .dayamt { grid-row: 1 / 3; grid-column: 2; font-size: 1.6rem; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .daycard .daygo { grid-column: 1; color: var(--gold); font-weight: 800; font-size: 0.85rem; margin-top: 0.3rem; }
+  .daychips { display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 0.3rem; margin-bottom: 0.9rem; }
+  .daychips button { flex: none; border: 1.5px solid var(--line); background: var(--bg); min-height: 40px; padding: 0 0.9rem; border-radius: 99px; font-weight: 700; color: var(--soft); }
+  .daychips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .sumgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .sumgrid > div { background: var(--bg); border-radius: 14px; padding: 0.7rem 0.8rem; }
+  .sumgrid span { display: block; color: var(--soft); font-weight: 700; font-size: 0.8rem; }
+  .sumgrid b { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .sumgrid .sumbig { grid-column: 1 / -1; background: var(--ok-bg); }
+  .sumgrid .sumbig b { font-size: 2rem; color: var(--ok); }
   details.adv { margin-top: 1rem; }
   details.adv summary { cursor: pointer; font-weight: 800; min-height: 44px; display: flex; align-items: center; color: var(--soft); }
 </style>
@@ -294,6 +308,7 @@
 
   <!-- ========== ÓRDENES ========== -->
   <section id="viewList" hidden>
+    <button class="daycard" id="openReport"><span><b>Ventas de hoy</b><small id="todaySub">0 órdenes cobradas</small></span><span class="dayamt" id="todayAmt">$0</span><span class="daygo">Ver reporte del día ›</span></button>
     <div class="otabs" role="group" aria-label="Tipo de órdenes">
       <button data-otab="due" aria-pressed="true">Por cobrar (<span id="cDue">0</span>)</button>
       <button data-otab="paid" aria-pressed="false">Pagadas (<span id="cPaid">0</span>)</button>
@@ -302,6 +317,8 @@
     <p class="empty" id="ordersEmpty" style="margin-top:2rem"></p>
     <div id="compsBox" hidden>
       <button class="btn plain full" id="openComps" style="margin-top:1.2rem">Ver comprobantes de transferencia</button>
+      <button class="btn plain full" id="clearPaid" style="margin-top:.5rem">Limpiar pagadas de la lista</button>
+      <p class="hint" style="text-align:center">Al limpiar, las ventas siguen guardadas en el reporte del día.</p>
     </div>
   </section>
 
@@ -488,7 +505,7 @@
   function closeSheet() { sheet = null; $("sheetWrap").hidden = true; $("sheet").innerHTML = ""; }
   function renderSheet() {
     if (!sheet) return closeSheet();
-    const html = ({ milk: sheetMilk, cart: sheetCart, pay: sheetPay, prod: sheetProd, comps: sheetComps })[sheet.kind]();
+    const html = ({ milk: sheetMilk, cart: sheetCart, pay: sheetPay, prod: sheetProd, comps: sheetComps, report: sheetReport })[sheet.kind]();
     if (html == null) return;
     $("sheet").innerHTML = `<div class="grab"></div>` + html;
     $("sheetWrap").hidden = false;
@@ -638,6 +655,13 @@
     $("ordersEmpty").hidden = list.length > 0;
     $("ordersEmpty").textContent = otab === "due" ? "No hay órdenes por cobrar." : "No hay órdenes pagadas por entregar.";
     $("compsBox").hidden = otab !== "paid";
+    $("clearPaid").hidden = paid.length === 0;
+    const armedClear = armed === "clearPaid";
+    $("clearPaid").textContent = armedClear ? "Toca otra vez para limpiar" : "Limpiar pagadas de la lista";
+    $("clearPaid").className = "btn full " + (armedClear ? "danger" : "plain");
+    const hoy = daySummary(dayKey(Date.now()));
+    $("todayAmt").textContent = money(hoy.total);
+    $("todaySub").textContent = `${hoy.list.length} ${hoy.list.length === 1 ? "orden cobrada" : "órdenes cobradas"} · ${hoy.count} ${hoy.count === 1 ? "producto" : "productos"}`;
     document.querySelectorAll("img[data-thumb]").forEach(async (img) => { const u = await thumb(img.dataset.thumb); if (u) img.src = u; });
   }
   document.querySelector(".otabs").addEventListener("click", (e) => { const b = e.target.closest("[data-otab]"); if (!b) return; otab = b.dataset.otab; renderOrders(); });
@@ -655,7 +679,7 @@
       if (armed !== "o:" + o.id) { arm("o:" + o.id, renderOrders); renderOrders(); return; }
       armed = null; orders = orders.filter((x) => x.id !== o.id); saveOrders(); renderOrders(); toast("Orden borrada");
     }
-    if (act === "unpay") { o.pagado = false; saveOrders(); otab = "due"; renderOrders(); toast("Regresó a Por cobrar"); }
+    if (act === "unpay") { o.pagado = false; delete o.pagadoEn; unlogSale(o.id); saveOrders(); otab = "due"; renderOrders(); toast("Regresó a Por cobrar"); }
     if (act === "done") { orders = orders.filter((x) => x.id !== o.id); saveOrders(); renderOrders(); toast(o.comp ? "Entregada · el comprobante sigue guardado" : "Orden entregada"); }
     if (act === "viewcomp") { const c = await idb.get(o.comp).catch(() => null); if (c) openViewer(c); else toast("No se encontró la foto"); }
   });
@@ -701,8 +725,8 @@
         <button class="btn plain full" data-a="photo" style="margin-top:.5rem">Tomar otra foto</button>`;
   }
   function finishPay(o, how, compId) {
-    o.pagado = how; if (compId) o.comp = compId;
-    saveOrders(); sheet.done = true; renderSheet();
+    o.pagado = how; o.pagadoEn = Date.now(); if (compId) o.comp = compId;
+    saveOrders(); logSale(o); sheet.done = true; renderSheet();
     setTimeout(() => { closeSheet(); renderOrders(); }, 1300);
   }
   handlers.pay = async (a, b) => {
@@ -752,6 +776,7 @@
       if (armed !== "c:" + id) { arm("c:" + id, () => sheet && sheet.kind === "comps" && renderSheet()); renderSheet(); return; }
       armed = null; await idb.del(id).catch(() => {}); delete thumbs[id];
       orders.forEach((o) => { if (o.comp === id) delete o.comp; }); saveOrders();
+      ventas.forEach((v) => { if (v.comp === id) v.comp = null; }); saveVentas();
       sheet.list = sheet.list.filter((x) => x.id !== id); renderSheet(); toast("Comprobante borrado");
     }
   };
@@ -836,6 +861,189 @@ ${list.map((p) => `        <li><span class="name">${esc(p.n)}</span><span class=
       setTimeout(() => URL.revokeObjectURL(url), 5000); toast("Menú descargado como index.html");
     } catch (e) { toast("No se pudo descargar"); }
   };
+
+  // ================= Historial de ventas y reporte =================
+  const LS_V = "entreSierrasVentas";
+  let ventas = load(LS_V, []);
+  const saveVentas = () => save(LS_V, ventas);
+  const dayKey = (t) => { const d = new Date(t); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  function logSale(o) {
+    ventas = ventas.filter((v) => v.id !== o.id);
+    ventas.push({ id: o.id, cliente: o.cliente, items: o.items, total: o.total, pago: o.pagado, comp: o.comp || null, fecha: o.pagadoEn || Date.now() });
+    saveVentas();
+  }
+  function unlogSale(id) { ventas = ventas.filter((v) => v.id !== id); saveVentas(); }
+  (() => {   // pasar al historial las pagadas que ya existían y borrar ventas de más de 45 días
+    let changed = false;
+    orders.forEach((o) => { if (o.pagado && !ventas.some((v) => v.id === o.id)) { ventas.push({ id: o.id, cliente: o.cliente, items: o.items, total: o.total, pago: o.pagado, comp: o.comp || null, fecha: o.pagadoEn || o.creado }); changed = true; } });
+    const n = ventas.length, lim = Date.now() - 45 * 864e5; ventas = ventas.filter((v) => v.fecha >= lim);
+    if (changed || n !== ventas.length) saveVentas();
+  })();
+  function daysAvailable() { const s = new Set(ventas.map((v) => dayKey(v.fecha))); s.add(dayKey(Date.now())); return [...s].sort().reverse().slice(0, 14); }
+  function dayLabel(k) { if (k === dayKey(Date.now())) return "Hoy"; if (k === dayKey(Date.now() - 864e5)) return "Ayer"; const [, m, d] = k.split("-"); return `${+d}/${+m}`; }
+  function dayDate(k) { const [a, m, d] = k.split("-").map(Number); return new Date(a, m - 1, d); }
+  function dayLong(k) { const t = dayDate(k).toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", year: "numeric" }); return t.charAt(0).toUpperCase() + t.slice(1); }
+  function daySummary(k) {
+    const list = ventas.filter((v) => dayKey(v.fecha) === k).sort((a, b) => a.fecha - b.fecha);
+    const ef = list.filter((v) => v.pago !== "transferencia").reduce((s, v) => s + v.total, 0);
+    const tr = list.filter((v) => v.pago === "transferencia").reduce((s, v) => s + v.total, 0);
+    const prods = {};
+    list.forEach((v) => v.items.forEach((i) => { const key = i.n + (TEMP[i.t] ? " " + TEMP[i.t] : ""); const pr = prods[key] || (prods[key] = { n: key, q: 0, a: 0 }); pr.q += i.q; pr.a += i.q * i.p; }));
+    return { list, ef, tr, total: ef + tr, prods: Object.values(prods).sort((a, b) => b.q - a.q || b.a - a.a), count: list.reduce((s, v) => s + countOf(v.items), 0) };
+  }
+  function canShareFiles() { try { return !!(navigator.canShare && navigator.canShare({ files: [new File(["x"], "x.pdf", { type: "application/pdf" })] })); } catch (e) { return false; } }
+  function sheetReport() {
+    const k = sheet.day, s = daySummary(k), pend = orders.filter((o) => !o.pagado), hoy = k === dayKey(Date.now());
+    return `<h2>Reporte de ventas</h2><p class="sub2">${dayLong(k)}</p>
+      <div class="daychips">${daysAvailable().map((d) => `<button data-a="day" data-v="${d}" aria-pressed="${d === k}">${dayLabel(d)}</button>`).join("")}</div>
+      <div class="sumgrid">
+        <div class="sumbig"><span>Total vendido</span><b>${money(s.total)}</b></div>
+        <div><span>Efectivo</span><b>${money(s.ef)}</b></div><div><span>Transferencia</span><b>${money(s.tr)}</b></div>
+        <div><span>Órdenes cobradas</span><b>${s.list.length}</b></div><div><span>Productos</span><b>${s.count}</b></div>
+      </div>
+      ${s.prods.length ? `<p class="sectitle">Lo más vendido</p><ul class="summary">${s.prods.slice(0, 5).map((p) => `<li><span>${p.q} × ${esc(p.n)}</span><span>${money(p.a)}</span></li>`).join("")}</ul>` : `<p class="empty">No hay ventas cobradas este día.</p>`}
+      ${hoy && pend.length ? `<div class="banner" style="margin-top:1rem">Hay ${pend.length} ${pend.length === 1 ? "orden" : "órdenes"} sin cobrar (${money(pend.reduce((t, o) => t + o.total, 0))}). No cuentan en el reporte.</div>` : ""}
+      <button class="btn full big" data-a="pdf" ${s.list.length ? "" : "disabled"} style="margin-top:1rem">Descargar reporte PDF</button>
+      ${canShareFiles() ? `<button class="btn ghost full" data-a="share" ${s.list.length ? "" : "disabled"} style="margin-top:.5rem">Compartir por WhatsApp</button>` : ""}
+      <button class="back" data-a="close">Cerrar</button>`;
+  }
+  handlers.report = async (a, b) => {
+    if (a === "close") return closeSheet();
+    if (a === "day") { sheet.day = b.dataset.v; renderSheet(); return; }
+    if (a === "pdf" || a === "share") {
+      if (sheet.busy) return; sheet.busy = true; b.disabled = true; const label = b.textContent; b.textContent = "Preparando PDF…";
+      try {
+        const { blob, name } = await buildPDF(sheet.day);
+        if (a === "pdf") {
+          const url = URL.createObjectURL(blob), el = document.createElement("a");
+          el.href = url; el.download = name; document.body.appendChild(el); el.click(); el.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 10000); toast("Reporte guardado en Descargas");
+        } else {
+          await navigator.share({ files: [new File([blob], name, { type: "application/pdf" })], title: "Reporte de ventas" });
+        }
+      } catch (e) { if (!(e && e.name === "AbortError")) toast("No se pudo crear el PDF"); }
+      sheet.busy = false; b.disabled = false; b.textContent = label;
+    }
+  };
+  $("openReport").onclick = () => openSheet({ kind: "report", day: dayKey(Date.now()) });
+  $("clearPaid").onclick = () => {
+    if (armed !== "clearPaid") { arm("clearPaid", renderOrders); renderOrders(); return; }
+    armed = null; orders = orders.filter((o) => !o.pagado); saveOrders(); renderOrders(); toast("Lista limpia · las ventas siguen en el reporte");
+  };
+
+  // ---------- PDF hecho a mano (funciona sin internet) ----------
+  function pdfStr(t) {
+    const special = { "\u2026": "\\205", "\u2022": "\\225", "\u2014": "-", "\u2013": "-", "\u2019": "'", "\u201c": '"', "\u201d": '"', "\u00d7": "x" };
+    let o = "";
+    for (const ch of String(t)) {
+      const c = ch.charCodeAt(0);
+      if (special[ch]) o += special[ch];
+      else if (ch === "\\" || ch === "(" || ch === ")") o += "\\" + ch;
+      else if (c < 32) o += " ";
+      else if (c < 128) o += ch;
+      else if (c < 256) o += "\\" + c.toString(8).padStart(3, "0");
+      else o += "?";
+    }
+    return "(" + o + ")";
+  }
+  function wrap(t, n) { const out = []; let line = ""; String(t).split(" ").forEach((w) => { if ((line + " " + w).trim().length > n) { if (line) out.push(line); line = w; } else line = (line + " " + w).trim(); }); if (line) out.push(line); return out; }
+  function dataToBytes(d) { const b = atob(d.split(",")[1]); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+  function jpegSize(b) {
+    if (b[0] !== 0xFF || b[1] !== 0xD8) return null;
+    let i = 2;
+    while (i < b.length - 9) {
+      if (b[i] !== 0xFF) { i++; continue; }
+      const m = b[i + 1]; if (m === 0xFF) { i++; continue; }
+      const len = (b[i + 2] << 8) | b[i + 3];
+      if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) return { h: (b[i + 5] << 8) | b[i + 6], w: (b[i + 7] << 8) | b[i + 8], comps: b[i + 9] };
+      i += 2 + len;
+    }
+    return null;
+  }
+  async function buildPDF(k) {
+    const s = daySummary(k);
+    const W = 612, H = 792, M = 46, pages = []; let cur, y;
+    const NAVY = "0.137 0.141 0.176", GOLD = "0.824 0.690 0.416", INK = "0.169 0.114 0.086", SOFT = "0.42 0.353 0.298", ACC = "0.604 0.310 0.110", GREEN = "0.18 0.42 0.28", CREAM = "0.969 0.937 0.894";
+    const np = () => { cur = []; pages.push(cur); y = H - M; };
+    const T = (x, yy, str, f, sz, col) => cur.push(`BT /${f} ${sz} Tf ${col || INK} rg ${x.toFixed(1)} ${yy.toFixed(1)} Td ${pdfStr(str)} Tj ET`);
+    const TR = (xr, yy, str, f, sz, col) => T(xr - String(str).length * sz * 0.6, yy, str, f, sz, col);   // solo con Courier (F3/F4)
+    const R = (x, yy, w, h, col) => cur.push(`${col} rg ${x.toFixed(1)} ${yy.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)} re f`);
+    const L = (yy) => cur.push(`0.85 0.80 0.74 RG 0.7 w ${M} ${yy.toFixed(1)} m ${W - M} ${yy.toFixed(1)} l S`);
+    const need = (h) => { if (y - h < M + 20) np(); };
+    const cut = (t, n) => { t = String(t); return t.length > n ? t.slice(0, n - 1) + "\u2026" : t; };
+    const corto = dayDate(k).toLocaleDateString("es-MX");
+
+    np();
+    R(0, H - 112, W, 112, NAVY);
+    T(M, H - 56, "Café Entre Sierras", "F2", 24, GOLD);
+    T(M, H - 79, "Reporte de ventas", "F1", 13, "1 1 1");
+    T(M, H - 97, dayLong(k), "F1", 10, "0.85 0.82 0.76");
+    TR(W - M, H - 97, "Generado " + hora(Date.now()), "F3", 9, "0.85 0.82 0.76");
+    y = H - 140;
+    const bw = (W - 2 * M - 20) / 3;
+    [["Total vendido", s.total, ACC], ["Efectivo", s.ef, GREEN], ["Transferencia", s.tr, INK]].forEach(([lb, v, col], i) => {
+      const x = M + i * (bw + 10); R(x, y - 60, bw, 60, CREAM); T(x + 12, y - 20, lb, "F1", 10, SOFT); T(x + 12, y - 47, money(v), "F2", 20, col);
+    });
+    y -= 82;
+    T(M, y, `Órdenes cobradas: ${s.list.length}      Productos vendidos: ${s.count}`, "F1", 10, SOFT); y -= 30;
+
+    T(M, y, "PRODUCTOS VENDIDOS", "F2", 11, ACC); y -= 8; L(y); y -= 16;
+    T(M, y, "Producto", "F2", 9, SOFT); TR(W - M - 110, y, "Cant.", "F4", 9, SOFT); TR(W - M, y, "Importe", "F4", 9, SOFT); y -= 15;
+    s.prods.forEach((p) => { need(16); T(M, y, cut(p.n, 60), "F1", 10); TR(W - M - 110, y, String(p.q), "F3", 10); TR(W - M, y, money(p.a), "F3", 10); y -= 15; });
+    y -= 2; L(y); y -= 16; T(M, y, "Total", "F2", 11); TR(W - M, y, money(s.total), "F4", 11); y -= 34;
+
+    need(50); T(M, y, "DETALLE DE ÓRDENES", "F2", 11, ACC); y -= 8; L(y); y -= 16;
+    s.list.forEach((v) => {
+      const det = v.items.map((i) => `${i.q} ${i.n}${desc(i) ? " (" + desc(i) + ")" : ""}`).join(", ");
+      const lines = wrap(det, 92); need(16 + lines.length * 11 + 8);
+      const tr = v.pago === "transferencia";
+      T(M, y, hora(v.fecha), "F3", 9.5, SOFT); T(M + 68, y, cut(v.cliente, 38), "F2", 10);
+      T(W - M - 200, y, tr ? (v.comp ? "Transferencia (foto)" : "Transferencia") : "Efectivo", "F1", 9, tr ? ACC : GREEN);
+      TR(W - M, y, money(v.total), "F4", 10); y -= 13;
+      lines.forEach((l) => { T(M + 68, y, l, "F1", 8.5, SOFT); y -= 11; }); y -= 7;
+    });
+
+    const imgs = [];
+    for (const v of s.list.filter((x) => x.comp)) {
+      const c = await idb.get(v.comp).catch(() => null); if (!c || !c.img) continue;
+      const bytes = dataToBytes(c.img), sz = jpegSize(bytes); if (!sz || sz.comps !== 3) continue;
+      imgs.push({ v, bytes, w: sz.w, h: sz.h });
+    }
+    if (imgs.length) {
+      const boxW = W - 2 * M, boxH = (H - 2 * M - 70) / 2;
+      imgs.forEach((im, i) => {
+        if (i % 2 === 0) { np(); T(M, y, "COMPROBANTES DE TRANSFERENCIA", "F2", 11, ACC); y -= 26; }
+        T(M, y, `${hora(im.v.fecha)}  \u2022  ${cut(im.v.cliente, 40)}  \u2022  ${money(im.v.total)}`, "F2", 10); y -= 10;
+        const sc = Math.min(boxW / im.w, (boxH - 26) / im.h), w = im.w * sc, h = im.h * sc;
+        cur.push(`q ${w.toFixed(1)} 0 0 ${h.toFixed(1)} ${(M + (boxW - w) / 2).toFixed(1)} ${(y - h).toFixed(1)} cm /Im${i} Do Q`);
+        y -= h + 24;
+      });
+    }
+    pages.forEach((p, i) => { cur = p; T(M, 26, "Café Entre Sierras \u2022 Reporte del " + corto, "F1", 8, SOFT); TR(W - M, 26, `Página ${i + 1} de ${pages.length}`, "F3", 8, SOFT); });
+    return { blob: assemblePDF(pages, imgs, W, H), name: `reporte-ventas-${k}.pdf` };
+  }
+  function assemblePDF(pages, imgs, W, H) {
+    const enc = (t) => { const u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i) & 255; return u; };
+    const objs = [null, null, null];
+    const add = (parts) => { objs.push(parts); return objs.length; };
+    const fontN = ["Helvetica", "Helvetica-Bold", "Courier", "Courier-Bold"].map((f) => add([enc(`<< /Type /Font /Subtype /Type1 /BaseFont /${f} /Encoding /WinAnsiEncoding >>`)]));
+    const imgN = imgs.map((im) => add([enc(`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bytes.length} >>\nstream\n`), im.bytes, enc("\nendstream")]));
+    const pageN = pages.map((ops) => {
+      const data = enc(ops.join("\n"));
+      const c = add([enc(`<< /Length ${data.length} >>\nstream\n`), data, enc("\nendstream")]);
+      return add([enc(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources 3 0 R /Contents ${c} 0 R >>`)]);
+    });
+    objs[0] = [enc("<< /Type /Catalog /Pages 2 0 R >>")];
+    objs[1] = [enc(`<< /Type /Pages /Kids [${pageN.map((n) => n + " 0 R").join(" ")}] /Count ${pageN.length} >>`)];
+    objs[2] = [enc(`<< /Font << /F1 ${fontN[0]} 0 R /F2 ${fontN[1]} 0 R /F3 ${fontN[2]} 0 R /F4 ${fontN[3]} 0 R >> /XObject << ${imgN.map((n, i) => `/Im${i} ${n} 0 R`).join(" ")} >> >>`)];
+    const out = [enc("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n")]; let off = out[0].length; const offs = [];
+    objs.forEach((parts, i) => {
+      offs.push(off); const head = enc(`${i + 1} 0 obj\n`), tail = enc("\nendobj\n");
+      out.push(head, ...parts, tail); off += head.length + parts.reduce((t, x) => t + x.length, 0) + tail.length;
+    });
+    out.push(enc(`xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offs.map((o) => String(o).padStart(10, "0") + " 00000 n \n").join("") + `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${off}\n%%EOF\n`));
+    return new Blob(out, { type: "application/pdf" });
+  }
 
   // ================= General =================
   async function copyText(txt) {
