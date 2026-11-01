@@ -214,7 +214,7 @@
   .bar-in .sum { flex: 1; font-weight: 800; font-size: 1.35rem; }
   .bar-in .sum small { display: block; font-weight: 600; color: var(--soft); font-size: 0.8rem; }
 
-  .toast { position: fixed; left: 50%; bottom: 6.5rem; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 0.65rem 1.1rem; border-radius: 99px; font-weight: 700; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 60; white-space: nowrap; }
+  .toast { position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 7.6rem); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 0.65rem 1.1rem; border-radius: 99px; font-weight: 700; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 60; white-space: nowrap; }
   .toast.show { opacity: 1; }
   [hidden] { display: none !important; }
   /* ===== v4: estructura limpia ===== */
@@ -264,6 +264,39 @@
   .sumgrid b { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
   .sumgrid .sumbig { grid-column: 1 / -1; background: var(--ok-bg); }
   .sumgrid .sumbig b { font-size: 2rem; color: var(--ok); }
+  .olist { list-style: none; margin: 0; padding: 0; background: var(--panel); border-radius: 18px; box-shadow: 0 4px 14px rgba(74,44,29,.08); overflow: hidden; }
+  .orow { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.7rem; }
+  .orow + .orow { border-top: 1px solid var(--line); }
+  .oicon { flex: none; width: 40px; height: 40px; }
+  .oname { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .oname b { font-weight: 800; font-size: 1rem; line-height: 1.2; }
+  .incart { color: var(--ok); font-weight: 800; font-size: 0.78rem; }
+  .obtns { flex: none; display: flex; gap: 0.35rem; }
+  .tbtn { border: 1.5px solid var(--line); background: var(--bg); border-radius: 12px; min-width: 70px; min-height: 48px; padding: 0.3rem 0.4rem; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; transition: transform .1s; }
+  .tbtn:active { transform: scale(.94); }
+  .tbtn span { font-size: 0.72rem; font-weight: 700; color: var(--soft); }
+  .tbtn b { font-size: 0.95rem; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .tbtn.hot { border-color: #E3B48F; background: #FBEBDD; }
+  .tbtn.hot span { color: #8A3E12; }
+  .tbtn.cold { border-color: #A9CBE0; background: #E5F1F8; }
+  .tbtn.cold span { color: #285A78; }
+  .tbtn.cold b { color: #1F4E6B; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tbtn.hot { background: #3A2A20; border-color: #6A4A33; } :root:not([data-theme="light"]) .tbtn.hot span { color: #E9B48C; } :root:not([data-theme="light"]) .tbtn.cold { background: #1E2E38; border-color: #3B5A6E; } :root:not([data-theme="light"]) .tbtn.cold span, :root:not([data-theme="light"]) .tbtn.cold b { color: #A9D2EA; } }
+  :root[data-theme="dark"] .tbtn.hot { background: #3A2A20; border-color: #6A4A33; } :root[data-theme="dark"] .tbtn.hot span { color: #E9B48C; } :root[data-theme="dark"] .tbtn.cold { background: #1E2E38; border-color: #3B5A6E; } :root[data-theme="dark"] .tbtn.cold span, :root[data-theme="dark"] .tbtn.cold b { color: #A9D2EA; }
+  .bar-in.ped { display: block; }
+  .pedhead { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; }
+  .pedhead b { font-weight: 800; }
+  .pedhead small { color: var(--soft); font-weight: 600; }
+  .pedtotal { font-size: 1.35rem; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .pedlist { list-style: none; margin: 0 0 0.6rem; padding: 0; max-height: 28vh; overflow-y: auto; border-top: 1px dashed var(--line); }
+  .pedlist li { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0; border-bottom: 1px dashed var(--line); }
+  .pedlist li.flash { animation: flashbg 1s ease; }
+  @keyframes flashbg { 0% { background: var(--ok-bg); } 100% { background: transparent; } }
+  .pname2 { flex: 1; min-width: 0; border: 0; background: transparent; text-align: left; font-weight: 700; padding: 0.2rem 0; min-height: 36px; }
+  .pedlist .qty button { width: 2.1rem; height: 2.1rem; }
+  .pedlist .sub { min-width: 3rem; }
+  .pprices { display: block; color: var(--soft); font-size: 0.8rem; font-weight: 600; }
+  .paysum { margin: 0 0 1rem; padding: 0.6rem 0.8rem; background: var(--bg); border-radius: 12px; font-size: 0.88rem; }
   details.adv { margin-top: 1rem; }
   details.adv summary { cursor: pointer; font-weight: 800; min-height: 44px; display: flex; align-items: center; color: var(--soft); }
 </style>
@@ -286,13 +319,10 @@
   <section id="viewNew">
     <div class="banner" id="editBanner" hidden><span id="editText">Agregando a una orden</span><button id="editCancel">Cancelar</button></div>
     <div class="card">
-      <label class="field" for="cliente">¿Cómo identificas al cliente?</label>
+      <label class="field" for="cliente">Cliente</label>
       <input class="text" id="cliente" placeholder="Ej. chamarra roja, mesa de la ventana" autocomplete="off">
     </div>
-    <div style="margin-top:1rem">
-      <div class="seg" id="seg" role="group" aria-label="Tipo"></div>
-      <div class="grid" id="products"></div>
-    </div>
+    <div id="products" style="margin-top:.6rem"></div>
   </section>
 
   <!-- ========== TICKET ========== -->
@@ -352,9 +382,10 @@
 </main>
 
 <div class="bar" id="bar">
-  <div class="bar-in">
-    <div class="sum"><span id="barTotal">$0</span><small id="barCount">Toca las bebidas</small></div>
-    <button class="btn big" id="reviewBtn" disabled>Ver pedido</button>
+  <div class="bar-in ped">
+    <div class="pedhead"><span><b id="pedTitle">Pedido</b> <small id="barCount">· toca Caliente o Frío</small></span><b class="pedtotal" id="barTotal">$0</b></div>
+    <ul class="pedlist" id="pedList" hidden></ul>
+    <button class="btn ok big full" id="reviewBtn" disabled>Confirmar pedido</button>
   </div>
 </div>
 
@@ -376,12 +407,11 @@
   const TEMP = { hot: "caliente", cold: "frío", otros: "" };
   const CARD = { num: "5579 0701 3727 3796", raw: "5579070137273796", bank: "Santander", name: "Zaira León Sánchez" };
   const DEFAULT = [
-    ["hot","Espresso",40,0],["hot","Americano",50,0],["hot","Flat white",50,1],["hot","Cappuccino",60,1],
-    ["hot","Latte",60,1],["hot","Moka",60,1],["hot","Chocolate",60,1],["hot","Chai",70,1],["hot","Taro",70,1],["hot","Dirty chai",70,1],
-    ["cold","Americano",60,0],["cold","Latte",70,1],["cold","Caramel latte",70,1],["cold","Dark moka",70,1],
-    ["cold","Chai",70,1],["cold","Taro",70,1],["cold","Matcha",80,1],
-    ["otros","Agua",25,0],["otros","Agua mineral",35,0]
-  ].map(([cat, n, p, m], i) => ({ id: "p" + i, cat, n, p, m: !!m }));
+    ["b","Espresso",40,40,0],["b","Americano",50,60,0],["b","Flat white",50,50,1],["b","Cappuccino",60,60,1],["b","Latte",60,70,1],
+    ["b","Moka",60,60,1],["b","Chocolate",60,60,1],["b","Chai",70,70,1],["b","Taro",70,70,1],["b","Dirty chai",70,70,1],
+    ["b","Caramel latte",70,70,1],["b","Dark moka",70,70,1],["b","Matcha",80,80,1],
+    ["o","Agua",25,null,0],["o","Agua mineral",35,null,0]
+  ].map(([k, n, ph, pc, m], i) => k === "b" ? { id: "p" + i, tipo: "bebida", n, ph, pc, m: !!m } : { id: "p" + i, tipo: "otro", n, p: ph, m: false });
   const MENU_TEMPLATE = "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, viewport-fit=cover\">\n<title>Menú · Café Entre Sierras<\/title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link href=\"https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Great+Vibes&family=Montserrat:wght@400;500;600&display=swap\" rel=\"stylesheet\">\n<style>\n  :root {\n    --bg: #F1E6D3;\n    --panel: #E7D7BC;\n    --ink: #262833;\n    --gold: #8E6E2C;\n    --soft: #5E5A52;\n    --line: #CDB892;\n    color-scheme: light;\n    box-sizing: border-box;\n    padding-top: env(safe-area-inset-top, 0px);\n    padding-bottom: env(safe-area-inset-bottom, 0px);\n  }\n  @media (prefers-color-scheme: dark) {\n    :root:not([data-theme=\"light\"]) {\n      --bg: #23242D;\n      --panel: #2C2E39;\n      --ink: #EFE8D8;\n      --gold: #D2B06A;\n      --soft: #ABA697;\n      --line: #4A4A4F;\n      color-scheme: dark;\n    }\n  }\n  :root[data-theme=\"dark\"] {\n    --bg: #23242D; --panel: #2C2E39; --ink: #EFE8D8; --gold: #D2B06A; --soft: #ABA697; --line: #4A4A4F;\n    color-scheme: dark;\n  }\n  *, *::before, *::after { box-sizing: border-box; }\n  html { scroll-padding-top: env(safe-area-inset-top, 0px); }\n  body {\n    margin: 0;\n    background: var(--bg);\n    color: var(--ink);\n    font-family: \"Montserrat\", \"Segoe UI\", Arial, sans-serif;\n    font-size: 1.05rem;\n    line-height: 1.5;\n  }\n  main { max-width: 30rem; margin: 0 auto; padding: 2.5rem 1.5rem 3rem; }\n\n  header { text-align: center; margin-bottom: 2.5rem; }\n  .logo { width: 132px; height: 132px; color: var(--gold); display: block; margin: 0 auto 1.2rem; }\n  .welcome { font-family: \"Great Vibes\", \"Brush Script MT\", cursive; font-size: 2.4rem; color: var(--gold); margin: 0; line-height: 1; }\n  .cafe { font-family: \"Great Vibes\", \"Brush Script MT\", cursive; font-size: 2.6rem; color: var(--gold); margin: 1.2rem 0 -0.4rem; line-height: 1; }\n  h1 {\n    font-family: \"Abril Fatface\", \"Bodoni MT\", Didot, Georgia, serif;\n    font-weight: 400;\n    font-size: clamp(2.3rem, 11vw, 3rem);\n    line-height: 1.05;\n    margin: 0;\n    color: var(--gold);\n    letter-spacing: 0.02em;\n  }\n  .tagline { margin: 0.6rem 0 0; font-weight: 500; letter-spacing: 0.25em; font-size: 0.85rem; color: var(--ink); }\n  .origin { margin: 0.4rem 0 0; font-size: 0.9rem; color: var(--soft); }\n\n  section { margin-top: 2rem; background: var(--panel); border-radius: 14px; padding: 1.2rem 1.25rem 0.6rem; }\n  h2 { font-family: \"Abril Fatface\", Georgia, serif; font-weight: 400; font-size: 1.6rem; color: var(--gold); margin: 0 0 0.4rem; }\n  ul { list-style: none; margin: 0; padding: 0; }\n  li { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.55rem 0; }\n  li + li { border-top: 1px solid var(--line); }\n  .name { font-weight: 500; }\n  .dots { flex: 1; }\n  .price { font-weight: 600; color: var(--gold); font-variant-numeric: tabular-nums; }\n\n  .pay p { margin: 0.2rem 0; }\n  .pay .label { color: var(--soft); font-size: 0.85rem; margin-top: 0.7rem; }\n  .pay .card { font-weight: 600; font-size: 1.25rem; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }\n  .copy { margin: 1rem 0 0.8rem; width: 100%; padding: 0.8rem; border: 1.5px solid var(--gold); border-radius: 10px; background: transparent; color: var(--gold); font: inherit; font-weight: 600; cursor: pointer; }\n  .copy:active { opacity: .7; }\n  footer { margin-top: 2.2rem; text-align: center; color: var(--soft); font-size: 0.9rem; }\n\n  /* Bienvenida al abrir */\n  .intro > * { opacity: 0; transform: translateY(8px); animation: rise .8s ease forwards; }\n  .intro .logo { animation-delay: .05s; }\n  .intro .welcome { animation-delay: .45s; }\n  .intro .cafe, .intro h1 { animation-delay: .8s; }\n  .intro .tagline, .intro .origin { animation-delay: 1.1s; }\n  .menu { opacity: 0; animation: fade .8s ease 1.4s forwards; }\n  @keyframes rise { to { opacity: 1; transform: none; } }\n  @keyframes fade { to { opacity: 1; } }\n  @media (prefers-reduced-motion: reduce) {\n    .intro > *, .menu { animation: none; opacity: 1; transform: none; }\n  }\n<\/style>\n<\/head>\n<body>\n<main>\n  <header class=\"intro\">\n    <svg class=\"logo\" viewBox=\"0 0 120 120\" role=\"img\" aria-label=\"Logo de Café Entre Sierras\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n      <circle cx=\"60\" cy=\"60\" r=\"56\" stroke-width=\"2\"/>\n      <circle cx=\"60\" cy=\"60\" r=\"50\" stroke-width=\"0.8\"/>\n      <!-- sierras -->\n      <path d=\"M18 84 L38 62 L50 74 L66 54 L82 72 L92 64 L102 84\" stroke-width=\"1.6\"/>\n      <!-- rama de café -->\n      <path d=\"M44 98 C52 82 62 70 80 44\" stroke-width=\"1.8\"/>\n      <path d=\"M66 62 C56 56 48 46 46 34 C58 36 66 46 66 62 Z\" stroke-width=\"1.5\"/>\n      <path d=\"M66 62 C60 52 54 44 46 34\" stroke-width=\"0.8\"/>\n      <path d=\"M74 52 C84 50 94 42 98 32 C86 32 76 40 74 52 Z\" stroke-width=\"1.5\"/>\n      <path d=\"M74 52 C82 46 90 38 98 32\" stroke-width=\"0.8\"/>\n      <!-- cerezas -->\n      <circle cx=\"56\" cy=\"82\" r=\"5\" fill=\"currentColor\" stroke=\"none\"/>\n      <circle cx=\"64\" cy=\"86\" r=\"4.5\" stroke-width=\"1.5\"/>\n      <circle cx=\"58\" cy=\"91\" r=\"4\" stroke-width=\"1.5\"/>\n      <!-- abeja -->\n      <ellipse cx=\"36\" cy=\"40\" rx=\"5\" ry=\"3.2\" transform=\"rotate(-25 36 40)\" fill=\"currentColor\" stroke=\"none\"/>\n      <path d=\"M33 37 C29 31 31 27 35 30 Z M38 36 C38 29 42 28 42 33 Z\" stroke-width=\"1\"/>\n    <\/svg>\n    <p class=\"welcome\">¡Bienvenido!<\/p>\n    <p class=\"cafe\">Café<\/p>\n    <h1>Entre Sierras<\/h1>\n    <p class=\"tagline\">CAFÉ CON HERENCIA<\/p>\n    <p class=\"origin\">Xicotepec de Juárez, Puebla<\/p>\n  <\/header>\n\n  <div class=\"menu\">\n    {{SECCIONES}}\n    <section class=\"pay\" aria-labelledby=\"pagos\">\n      <h2 id=\"pagos\">Pago por transferencia<\/h2>\n      <p class=\"label\">Número de tarjeta<\/p>\n      <p class=\"card\" id=\"tarjeta\">5579 0701 3727 3796<\/p>\n      <p class=\"label\">Banco<\/p>\n      <p>Santander<\/p>\n      <p class=\"label\">A nombre de<\/p>\n      <p>Zaira León Sánchez<\/p>\n      <button class=\"copy\" id=\"copiar\" type=\"button\">Copiar número de tarjeta<\/button>\n    <\/section>\n\n    <footer>Café 100% arábica · Precios en pesos mexicanos.<\/footer>\n  <\/div>\n<\/main>\n<script>\n  document.getElementById('copiar').addEventListener('click', async function () {\n    const btn = this;\n    try {\n      await navigator.clipboard.writeText('5579070137273796');\n      btn.textContent = '¡Copiado!';\n    } catch (e) {\n      btn.textContent = 'Mantén presionado el número para copiarlo';\n    }\n    setTimeout(() => { btn.textContent = 'Copiar número de tarjeta'; }, 2500);\n  });\n<\/script>\n<\/body>\n<\/html>\n";
   const LS_P = "entreSierrasProductos", LS_O = "entreSierrasOrdenes";
 
@@ -393,13 +423,30 @@
   function load(k, def) { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? def : v; } catch (e) { return def; } }
   function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast("No se pudo guardar"); } }
 
-  let products = load(LS_P, null) || DEFAULT.map((p) => ({ ...p }));
+  function migrateProducts(list) {   // de la versión con Calientes/Fríos separados a una sola lista
+    if (!Array.isArray(list)) return null;
+    if (list.every((p) => p.tipo)) return list;
+    const out = [];
+    list.forEach((p) => {
+      if (p.tipo) { out.push(p); return; }
+      if (p.cat === "otros") { out.push({ id: p.id, tipo: "otro", n: p.n, p: p.p, m: false }); return; }
+      let b = out.find((x) => x.tipo === "bebida" && x.n.toLowerCase() === p.n.toLowerCase());
+      if (!b) { b = { id: p.id, tipo: "bebida", n: p.n, ph: null, pc: null, m: false }; out.push(b); }
+      if (p.cat === "cold") b.pc = p.p; else b.ph = p.p;
+      b.m = b.m || !!p.m;
+    });
+    out.forEach((b) => { if (b.tipo === "bebida") { if (b.ph == null) b.ph = b.pc; if (b.pc == null) b.pc = b.ph; } });
+    return out;
+  }
+  const savedProducts = load(LS_P, null);
+  let products = migrateProducts(savedProducts) || DEFAULT.map((p) => ({ ...p }));
+  if (savedProducts && !savedProducts.every((p) => p.tipo)) save(LS_P, products);
   let orders = load(LS_O, []);
   orders.forEach((o) => { if (o.pagado === true) o.pagado = "efectivo"; });
   const saveProducts = () => save(LS_P, products);
   const saveOrders = () => save(LS_O, orders);
 
-  let view = "new", tipo = "hot", cart = [], editingId = null, otab = "due";
+  let view = "new", cart = [], editingId = null, otab = "due";
   let sheet = null;   // { kind: "milk"|"cart"|"pay"|"prod"|"comps", ... }
   let armed = null, armTimer, viewerData = null;
 
@@ -485,8 +532,10 @@
   }
 
   // ================= Utilidades =================
-  const findProd = (n, cat) => products.find((p) => p.n === n && p.cat === cat);
+  const byName = (n) => products.find((p) => p.n === n);
+  const priceOf = (p, t) => (t === "cold" ? p.pc : t === "hot" ? p.ph : p.p);
   const otherTemp = (t) => (t === "hot" ? "cold" : t === "cold" ? "hot" : null);
+  const iconOf = (p, z) => drinkSVG({ n: p.n, cat: p.tipo === "otro" ? "otros" : "hot", m: p.m }, z);
   const desc = (i) => [TEMP[i.t], i.milk ? i.milk.toLowerCase() : ""].filter(Boolean).join(" · ");
   const totalOf = (items) => items.reduce((s, i) => s + i.p * i.q, 0);
   const countOf = (items) => items.reduce((s, i) => s + i.q, 0);
@@ -521,21 +570,21 @@
   // ---- Leche ----
   function sheetMilk() {
     const p = sheet.p;
-    return `<h2>${esc(p.n)}${TEMP[p.cat] ? " " + TEMP[p.cat] : ""}</h2><p class="sub2">¿Qué leche?</p>
+    return `<h2>${esc(p.n)} ${TEMP[sheet.t]}</h2><p class="sub2">¿Qué leche?</p>
       <div class="milkbtns">
         <button class="btn big" data-a="Entera">Entera</button>
         <button class="btn ghost big" data-a="Deslactosada">Deslactosada</button>
         <button class="back" data-a="close">Cancelar</button>
       </div>`;
   }
-  handlers.milk = (a) => { if (a === "close") return closeSheet(); const p = sheet.p; closeSheet(); addToCart(p, a); };
+  handlers.milk = (a) => { if (a === "close") return closeSheet(); const { p, t } = sheet; closeSheet(); addToCart(p, t, a); };
 
   // ---- Pedido (corregir) ----
   function sheetCart() {
     if (!cart.length) return `<h2>Pedido</h2><p class="empty">El pedido está vacío.</p><button class="btn full big" data-a="more">+ Agregar bebidas</button>`;
     return `<h2>Corregir pedido</h2><p class="sub2">Cambia cantidades, caliente o frío, o la leche.</p>
       ${cart.map((c, i) => {
-        const ot = otherTemp(c.t), canSwap = ot && findProd(c.n, ot);
+        const pr = byName(c.n), canSwap = c.t !== "otros" && pr && pr.tipo === "bebida";
         const tchip = c.t === "otros" ? "" : canSwap
           ? `<button class="chip" data-a="swap" data-i="${i}">${c.t === "hot" ? "☕ Caliente" : "🧊 Frío"} ⇄</button>`
           : `<span class="chip static">${c.t === "hot" ? "☕ Caliente" : "🧊 Frío"}</span>`;
@@ -552,50 +601,76 @@
     if (a === "inc") c.q++;
     if (a === "dec") { c.q--; if (c.q <= 0) cart.splice(i, 1); }
     if (a === "milk") { c.milk = c.milk === "Entera" ? "Deslactosada" : "Entera"; merge(); }
-    if (a === "swap") { const np = findProd(c.n, otherTemp(c.t)); if (np) { c.t = np.cat; c.p = np.p; c.m = np.m; if (np.m && !c.milk) c.milk = "Entera"; if (!np.m) c.milk = ""; merge(); } }
+    if (a === "swap") { const pr = byName(c.n); if (pr && pr.tipo === "bebida") { c.t = otherTemp(c.t); c.p = priceOf(pr, c.t); merge(); } }
     if (a === "done") { closeSheet(); if (!cart.length) show("new"); else renderTicket(); updateBar(); return; }
     if (a === "more") { closeSheet(); show("new"); return; }
     updateBar(); renderSheet();
   };
 
   // ================= Ordenar =================
-  function renderSeg() { $("seg").innerHTML = Object.keys(CATS).map((k) => `<button data-cat="${k}" aria-pressed="${tipo === k}">${CATS[k]}</button>`).join(""); }
-  const qtyIn = (p) => cart.filter((c) => c.n === p.n && c.t === p.cat).reduce((s, c) => s + c.q, 0);
+  const qtyIn = (p) => cart.filter((c) => c.n === p.n).reduce((s, c) => s + c.q, 0);
   function renderProducts() {
-    const list = products.filter((p) => p.cat === tipo);
-    $("products").innerHTML = list.length
-      ? list.map((p, i) => { const q = qtyIn(p);
-          return `<button class="prod" data-pid="${p.id}" style="animation-delay:${(i * 0.04).toFixed(2)}s">${q ? `<span class="count">${q}</span>` : ""}${drinkSVG(p)}<span class="pname">${esc(p.n)}</span><b>${money(p.p)}</b></button>`; }).join("")
-      : `<p class="empty" style="grid-column:1/-1">No hay productos aquí. Agrégalos en Productos.</p>`;
+    const beb = products.filter((p) => p.tipo === "bebida"), otr = products.filter((p) => p.tipo === "otro");
+    const row = (p) => {
+      const q = qtyIn(p);
+      const btns = p.tipo === "bebida"
+        ? `<button class="tbtn hot" data-add="${p.id}" data-t="hot"><span>Caliente</span><b>${money(p.ph)}</b></button>
+           <button class="tbtn cold" data-add="${p.id}" data-t="cold"><span>Frío</span><b>${money(p.pc)}</b></button>`
+        : `<button class="tbtn" data-add="${p.id}" data-t="otros"><span>Agregar</span><b>${money(p.p)}</b></button>`;
+      return `<li class="orow" data-row="${p.id}"><span class="oicon">${iconOf(p, 40)}</span>
+        <span class="oname"><b>${esc(p.n)}</b><span class="incart" ${q ? "" : "hidden"}>${q} en el pedido</span></span>
+        <span class="obtns">${btns}</span></li>`;
+    };
+    $("products").innerHTML =
+      (beb.length ? `<p class="sectitle" style="margin-top:.2rem">Bebidas</p><ul class="olist">${beb.map(row).join("")}</ul>` : "") +
+      (otr.length ? `<p class="sectitle">Otros</p><ul class="olist">${otr.map(row).join("")}</ul>` : "") +
+      (!products.length ? `<p class="empty">No hay productos. Agrégalos en Productos.</p>` : "");
   }
   function updateCounts() {
-    document.querySelectorAll("#products .prod").forEach((b) => {
-      const p = products.find((x) => x.id === b.dataset.pid); if (!p) return;
-      const q = qtyIn(p), old = b.querySelector(".count");
-      if (q) { if (old) { old.textContent = q; old.style.animation = "none"; void old.offsetWidth; old.style.animation = ""; } else b.insertAdjacentHTML("afterbegin", `<span class="count">${q}</span>`); }
-      else if (old) old.remove();
+    document.querySelectorAll("#products [data-row]").forEach((li) => {
+      const p = products.find((x) => x.id === li.dataset.row); if (!p) return;
+      const q = qtyIn(p), el = li.querySelector(".incart");
+      el.hidden = !q; el.textContent = q + " en el pedido";
     });
   }
-  function updateBar() {
+  function updateBar(flashIdx) {
     const total = totalOf(cart), count = countOf(cart);
     $("barTotal").textContent = money(total);
-    $("barCount").textContent = count ? count + (count === 1 ? " producto" : " productos") : "Toca las bebidas";
+    const cli = $("cliente").value.trim();
+    $("pedTitle").textContent = cli ? "Pedido de " + cli : "Pedido";
+    $("barCount").textContent = count ? "· " + count + (count === 1 ? " producto" : " productos") : "· toca Caliente o Frío";
+    $("pedList").innerHTML = cart.map((c, i) => `<li class="${i === flashIdx ? "flash" : ""}">
+        <button class="pname2" data-fix="${i}">${c.q} × ${esc(c.n)}${desc(c) ? ` <span class="tag">${esc(desc(c))}</span>` : ""}</button>
+        <span class="qty"><button data-dec="${i}" aria-label="Quitar uno">−</button><button data-inc="${i}" aria-label="Agregar uno">+</button></span>
+        <span class="sub">${money(c.p * c.q)}</span></li>`).join("");
+    $("pedList").hidden = cart.length === 0;
     $("reviewBtn").disabled = cart.length === 0;
     const eo = editingId && orders.find((o) => o.id === editingId);
     $("editBanner").hidden = !eo;
     if (eo) $("editText").textContent = "Agregando a: " + eo.cliente;
     updateCounts();
+    if (flashIdx != null) { const li = $("pedList").children[flashIdx]; if (li) li.scrollIntoView({ block: "nearest" }); }
+    requestAnimationFrame(() => { document.querySelector("main").style.paddingBottom = ($("bar").hidden ? 32 : $("bar").offsetHeight + 24) + "px"; });
   }
-  function addToCart(p, milk) {
-    cart.push({ n: p.n, t: p.cat, milk: milk || "", p: p.p, q: 1, m: p.m });
-    merge(); updateBar(); toast(`+1 ${p.n}${milk ? " · " + milk.toLowerCase() : ""}`);
+  function addToCart(p, t, milk) {
+    cart.push({ n: p.n, t, milk: milk || "", p: priceOf(p, t), q: 1, m: p.m });
+    merge();
+    const idx = cart.findIndex((c) => c.n === p.n && c.t === t && c.milk === (milk || ""));
+    updateBar(idx);
   }
-  $("seg").addEventListener("click", (e) => { const b = e.target.closest("[data-cat]"); if (!b) return; tipo = b.dataset.cat; renderSeg(); renderProducts(); });
   $("products").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-pid]"); if (!b) return;
-    const p = products.find((x) => x.id === b.dataset.pid); if (!p) return;
-    if (p.m) openSheet({ kind: "milk", p }); else addToCart(p, "");
+    const b = e.target.closest("[data-add]"); if (!b) return;
+    const p = products.find((x) => x.id === b.dataset.add); if (!p) return;
+    const t = b.dataset.t;
+    if (p.m) openSheet({ kind: "milk", p, t }); else addToCart(p, t, "");
   });
+  $("pedList").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.inc) { cart[+b.dataset.inc].q++; updateBar(+b.dataset.inc); }
+    if (b.dataset.dec) { const i = +b.dataset.dec; cart[i].q--; if (cart[i].q <= 0) cart.splice(i, 1); updateBar(); }
+    if (b.dataset.fix) openSheet({ kind: "cart" });
+  });
+  $("cliente").addEventListener("input", () => { const cli = $("cliente").value.trim(); $("pedTitle").textContent = cli ? "Pedido de " + cli : "Pedido"; });
   $("editCancel").onclick = () => { editingId = null; cart = []; $("cliente").value = ""; updateBar(); show("list"); };
 
   // ================= Ticket =================
@@ -698,7 +773,8 @@
     if (sheet.done) return `<div class="success"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="var(--ok-bg)"></circle>
         <path class="ck" d="M20 33l8 8 16-17" fill="none" stroke="var(--ok)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         <p>¡Pagado!</p><span>${esc(o.cliente)} pasó a <b>Pagadas</b>.</span></div>`;
-    const head = `<h2>Cobrar a ${esc(o.cliente)}</h2><p class="amount">${money(o.total)}</p>`;
+    const head = `<h2>Cobrar a ${esc(o.cliente)}</h2><p class="amount" style="margin-bottom:.4rem">${money(o.total)}</p>
+      <ul class="summary paysum">${o.items.map((it) => `<li><span>${it.q} × ${esc(it.n)} <span class="tag">${esc(desc(it))}</span></span><span>${money(it.p * it.q)}</span></li>`).join("")}</ul>`;
     if (!sheet.mode) return head + `<p style="margin:0 0 .6rem;font-weight:800">¿Cómo va a pagar?</p>
         <div class="methods"><button class="method" data-a="cash">${ICON_CASH}Efectivo</button><button class="method" data-a="transfer">${ICON_PHONE}Transferencia</button></div>
         <button class="back" data-a="close">Cancelar</button>`;
@@ -790,21 +866,25 @@
 
   // ================= Productos =================
   function renderProdView() {
-    $("prodLists").innerHTML = Object.keys(CATS).map((k) => {
-      const list = products.filter((p) => p.cat === k);
-      return `<p class="sectitle">${CATS[k]}</p><div class="card" style="margin-top:0">
-        ${list.length ? `<ul class="plist">${list.map((p) => `<li><div class="prow">${drinkSVG(p, 40)}<span class="pn">${esc(p.n)}${p.m ? ' <span class="tag">· con leche</span>' : ""}</span><span class="pp">${money(p.p)}</span><button data-pedit="${p.id}">Editar</button></div></li>`).join("")}</ul>`
-          : `<p class="empty">Sin productos.</p>`}</div>`;
-    }).join("");
+    const grupos = [["Bebidas", products.filter((p) => p.tipo === "bebida")], ["Otros (agua, comida…)", products.filter((p) => p.tipo === "otro")]];
+    $("prodLists").innerHTML = grupos.map(([t, list]) => `<p class="sectitle">${t}</p><div class="card" style="margin-top:0">
+      ${list.length ? `<ul class="plist">${list.map((p) => `<li><div class="prow">${iconOf(p, 36)}<span class="pn">${esc(p.n)}${p.m ? ' <span class="tag">· con leche</span>' : ""}
+        <span class="pprices">${p.tipo === "bebida" ? `Caliente ${money(p.ph)} · Frío ${money(p.pc)}` : money(p.p)}</span></span>
+        <button data-pedit="${p.id}">Editar</button></div></li>`).join("")}</ul>` : `<p class="empty">Sin productos.</p>`}</div>`).join("");
   }
   function sheetProd() {
-    const d = sheet.d, isNew = !sheet.id, delArmed = !isNew && armed === "p:" + sheet.id;
-    return `<h2>${isNew ? "Agregar producto nuevo" : "Editar producto"}</h2><p class="sub2">${isNew ? "Aparecerá luego luego para tomar órdenes." : "El precio nuevo solo cuenta para órdenes nuevas."}</p>
+    const d = sheet.d, isNew = !sheet.id, delArmed = !isNew && armed === "p:" + sheet.id, beb = d.tipo === "bebida";
+    return `<h2>${isNew ? "Agregar producto nuevo" : "Editar producto"}</h2><p class="sub2">${isNew ? "Aparecerá luego luego para tomar pedidos." : "El precio nuevo solo cuenta para pedidos nuevos."}</p>
       <div class="fields">
-        <div><label class="field" for="fName">Nombre</label><input class="text" id="fName" value="${esc(d.n)}" placeholder="Ej. Pay de queso" autocomplete="off"></div>
-        <div><label class="field" for="fPrice">Precio</label><input class="text" id="fPrice" type="number" inputmode="numeric" min="0" value="${d.p}" placeholder="Ej. 45"></div>
-        <div><span class="field">Sección</span><div class="segp">${Object.keys(CATS).map((k) => `<button data-a="cat" data-v="${k}" aria-pressed="${d.cat === k}">${CATS[k]}</button>`).join("")}</div></div>
-        <button class="toggle" data-a="milk" aria-pressed="${d.m}"><span>¿Lleva leche?<br><span class="tag">Pregunta entera o deslactosada</span></span><span class="sw"></span></button>
+        <div><label class="field" for="fName">Nombre</label><input class="text" id="fName" value="${esc(d.n)}" placeholder="Ej. Horchata" autocomplete="off"></div>
+        <div><span class="field">¿Qué es?</span><div class="segp" style="grid-template-columns:1fr 1fr">
+          <button data-a="tipo" data-v="bebida" aria-pressed="${beb}">Bebida</button><button data-a="tipo" data-v="otro" aria-pressed="${!beb}">Otro (agua, comida)</button></div></div>
+        ${beb ? `<div class="row2">
+            <div><label class="field" for="fPh">Precio caliente</label><input class="text" id="fPh" type="number" inputmode="numeric" min="0" value="${d.ph ?? ""}" placeholder="Ej. 60"></div>
+            <div><label class="field" for="fPc">Precio frío</label><input class="text" id="fPc" type="number" inputmode="numeric" min="0" value="${d.pc ?? ""}" placeholder="Ej. 70"></div>
+          </div>
+          <button class="toggle" data-a="milk" aria-pressed="${d.m}"><span>¿Lleva leche?<br><span class="tag">Pregunta entera o deslactosada</span></span><span class="sw"></span></button>`
+        : `<div><label class="field" for="fP">Precio</label><input class="text" id="fP" type="number" inputmode="numeric" min="0" value="${d.p ?? ""}" placeholder="Ej. 25"></div>`}
         <button class="btn ok full big" data-a="save">Guardar</button>
         ${isNew ? "" : `<button class="btn ${delArmed ? "danger" : "plain"} full" data-a="del">${delArmed ? "Toca otra vez para eliminar" : "Eliminar producto"}</button>`}
         <button class="back" data-a="close" style="margin-top:0">Cancelar</button>
@@ -812,26 +892,36 @@
   }
   function openProd(id) {
     const p = id && products.find((x) => x.id === id);
-    openSheet({ kind: "prod", id: p ? p.id : null, d: p ? { n: p.n, p: p.p, cat: p.cat, m: p.m } : { n: "", p: "", cat: tipo, m: false } });
+    openSheet({ kind: "prod", id: p ? p.id : null, d: p ? { ...p } : { n: "", tipo: "bebida", ph: "", pc: "", p: "", m: true } });
     if (!p) setTimeout(() => $("fName")?.focus(), 80);
   }
-  inputs.prod = (e) => { if (e.target.id === "fName") sheet.d.n = e.target.value; if (e.target.id === "fPrice") sheet.d.p = e.target.value; };
+  inputs.prod = (e) => { const m = { fName: "n", fPh: "ph", fPc: "pc", fP: "p" }[e.target.id]; if (m) sheet.d[m] = e.target.value; };
   handlers.prod = (a, b) => {
     const d = sheet.d;
     if (a === "close") return closeSheet();
-    if (a === "cat") { d.cat = b.dataset.v; renderSheet(); }
+    if (a === "tipo") { d.tipo = b.dataset.v; renderSheet(); }
     if (a === "milk") { d.m = !d.m; b.setAttribute("aria-pressed", d.m); }
     if (a === "del") {
       if (armed !== "p:" + sheet.id) { arm("p:" + sheet.id, () => sheet && sheet.kind === "prod" && renderSheet()); renderSheet(); return; }
       armed = null; products = products.filter((p) => p.id !== sheet.id); saveProducts(); closeSheet(); renderProdView(); renderProducts(); toast("Producto eliminado");
     }
     if (a === "save") {
-      const n = String(d.n).trim(), price = Number(d.p);
+      const n = String(d.n).trim();
       if (!n) { toast("Escribe el nombre"); $("fName").focus(); return; }
-      if (!(price > 0)) { toast("Escribe un precio válido"); $("fPrice").focus(); return; }
-      if (products.find((p) => p.n.toLowerCase() === n.toLowerCase() && p.cat === d.cat && p.id !== sheet.id)) { toast("Ya existe en " + CATS[d.cat]); return; }
-      if (!sheet.id) products.push({ id: uid("p"), n, p: price, cat: d.cat, m: d.m });
-      else Object.assign(products.find((p) => p.id === sheet.id), { n, p: price, cat: d.cat, m: d.m });
+      if (products.find((p) => p.n.toLowerCase() === n.toLowerCase() && p.id !== sheet.id)) { toast("Ese producto ya existe"); return; }
+      let item;
+      if (d.tipo === "bebida") {
+        let ph = Number(d.ph), pc = Number(d.pc);
+        if (!(ph > 0) && !(pc > 0)) { toast("Escribe al menos un precio"); $("fPh").focus(); return; }
+        if (!(ph > 0)) ph = pc; if (!(pc > 0)) pc = ph;
+        item = { tipo: "bebida", n, ph, pc, m: !!d.m };
+      } else {
+        const pr = Number(d.p);
+        if (!(pr > 0)) { toast("Escribe un precio válido"); $("fP").focus(); return; }
+        item = { tipo: "otro", n, p: pr, m: false };
+      }
+      if (!sheet.id) products.push({ id: uid("p"), ...item });
+      else { const i = products.findIndex((p) => p.id === sheet.id); products[i] = { id: sheet.id, ...item }; }
       saveProducts(); closeSheet(); renderProdView(); renderProducts(); toast("Guardado");
     }
   };
@@ -841,7 +931,8 @@
   // ================= Menú =================
   function menuHTML() {
     const secs = Object.keys(CATS).map((k) => {
-      const list = products.filter((p) => p.cat === k); if (!list.length) return "";
+      const list = products.filter((p) => (k === "otros" ? p.tipo === "otro" : p.tipo === "bebida")).map((p) => ({ n: p.n, p: priceOf(p, k) }));
+      if (!list.length) return "";
       return `<section aria-labelledby="sec-${k}">
       <h2 id="sec-${k}">${CATS[k]}</h2>
       <ul>
@@ -1058,11 +1149,12 @@ ${list.map((p) => `        <li><span class="name">${esc(p.n)}</span><span class=
     view = v;
     for (const [k, id] of Object.entries(VIEWS)) $(id).hidden = k !== v;
     $("bar").hidden = v !== "new";
+    if (v !== "new") document.querySelector("main").style.paddingBottom = "2rem";
     const tab = v === "review" ? "new" : v;
     document.querySelectorAll("[data-tab]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tab === tab));
     if (v === "list") renderOrders();
     if (v === "prod") renderProdView();
-    if (v === "new") { renderSeg(); renderProducts(); updateBar(); }
+    if (v === "new") { renderProducts(); updateBar(); }
     window.scrollTo(0, 0);
   }
   document.querySelector(".tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-tab]"); if (b) show(b.dataset.tab); });
@@ -1070,7 +1162,7 @@ ${list.map((p) => `        <li><span class="name">${esc(p.n)}</span><span class=
   function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 1600); }
 
   if ("serviceWorker" in navigator && location.hostname.endsWith("github.io")) navigator.serviceWorker.register("sw.js").catch(() => {});
-  renderSeg(); renderProducts(); updateBar(); renderOrders();
+  renderProducts(); updateBar(); renderOrders();
 </script>
 </body>
 </html>
